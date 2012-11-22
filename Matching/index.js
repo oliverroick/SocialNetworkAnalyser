@@ -4,7 +4,7 @@
 
 // load dependencies
 var DbConnection = require('./DbConnector.js');
-var dbscan = require('../modules/Clustering/clustering.min.js'); // https://github.com/bss/clustering.js
+var Matcher = require('./Matcher.js');
 
 // config
 var processedRefPoints = [];
@@ -107,11 +107,12 @@ function handlePasswordInput(password) {
  	initializeProcess();
 }
 
-function handleNextRefPoint(result) {
-	database.getMatchingCandidates(result.geom, handleMatchingCandidates);
+function handleNextRefPoint(matchingReference) {
+	database.getMatchingCandidates(matchingReference, handleMatchingCandidates);
 }
 
-function handleMatchingCandidates(matchingCandidates) {
-	console.log('done')
-	console.log(matchingCandidates);
+function handleMatchingCandidates(matchingReference, matchingCandidates) {
+	var matches = Matcher.match(matchingReference, matchingCandidates);
+	processedRefPoints.push(matchingReference.id);
+	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
 }
