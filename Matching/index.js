@@ -1,7 +1,17 @@
+/* *****************************************************************************
+ * CONSTANTS setup
+ * ****************************************************************************/
+
+// load dependencies
 var DbConnection = require('./DbConnector.js');
 var dbscan = require('../modules/Clustering/clustering.min.js'); // https://github.com/bss/clustering.js
 
+// config
+var processedRefPoints = [];
 
+/* *****************************************************************************
+ * SETUP PROCESSING
+ * ****************************************************************************/
 
 // parse the command line input 
 var args = process.argv;
@@ -76,6 +86,13 @@ function getPassword(callback) {
   });
 }
 
+/**
+ * Initialize process
+ */
+ function initializeProcess() {
+ 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
+ }
+
 
 /* *****************************************************************************
  * EVENT HANDLER
@@ -85,7 +102,16 @@ function getPassword(callback) {
  *
  */
 function handlePasswordInput(password) {
- 	dbConfig.password = password;
+ 	dbConfig.pass = password;
  	database = new DbConnection(dbConfig);
- 	// intializeProcess();
+ 	initializeProcess();
+}
+
+function handleNextRefPoint(result) {
+	database.getMatchingCandidates(result.geom, handleMatchingCandidates);
+}
+
+function handleMatchingCandidates(matchingCandidates) {
+	console.log('done')
+	console.log(matchingCandidates);
 }
