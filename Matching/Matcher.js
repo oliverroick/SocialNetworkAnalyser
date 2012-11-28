@@ -1,4 +1,4 @@
-var DICE = require('./Dice.js')
+var natural = require('natural');
 
 var Matcher = (function () {
 	/*
@@ -9,7 +9,7 @@ var Matcher = (function () {
 	/*
 	 * Default threshold dice coefficient
 	 */
-	var diceThreshold = 0.7;
+	var diceThreshold = 0.5;
 
 	/*
 	 * Constructor
@@ -33,9 +33,11 @@ var Matcher = (function () {
 		for (var dataset in candidates) {
 			matches[dataset] = [];
 			candidates[dataset].forEach(function (poi) {
-				if (DICE.rollTheDice(reference.name, poi.name) > diceThreshold) {
-					matches[dataset].push(poi.id);
-					console.log(reference.name + ': ' + poi.name + ': ' + DICE.rollTheDice(reference.name, poi.name));
+				var dice, wupalmer;
+				dice = natural.DiceCoefficient(reference.name, poi.name);
+
+				if (dice > diceThreshold && (reference.category && poi.category)) {
+					wupalmer = natural.WuPalmer(reference.category, poi.category);
 				}
 			});
 		}
