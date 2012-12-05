@@ -15,19 +15,13 @@ var FileWriter = (function() {
 	 * @param {Array} The batch of strings to be written to the file.
 	 */
 	fileWriter.prototype.writeBatch = function(file, batch) {
-		fs.open(file, 'a', 666, function(e, id ) {
-			var pending = batch.length - 1;
-			batch.forEach(function(line) {
-				fs.write(id, line + '\n', null, 'utf8', function() {
-					pending--;
-					if (pending === 0) {
-						fs.close(id, function(){
-			      			console.log('Batch written');
-			    		});
-					}
-		  		});
-			});
+		var file = fs.openSync(file, 'a');
+
+		batch.forEach(function(line) {
+			fs.writeSync(file, line + '\n', null, null, null)
 		});
+		console.log('batch written');
+		fs.closeSync(file);
 	}
 
 	/**
