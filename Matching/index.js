@@ -5,6 +5,7 @@
 // load dependencies
 var DbConnection = require('./DbConnector.js');
 var Matcher = require('./Matcher.js');
+var FileWriter = require('./FileWriter.js');
 
 // config
 var processedRefPoints = [];
@@ -113,6 +114,20 @@ function handleNextRefPoint(matchingReference) {
 
 function handleMatchingCandidates(matchingReference, matchingCandidates) {
 	var matches = Matcher.match(matchingReference, matchingCandidates);
+	
+
+	for (var dataset in matches) {
+		var writeBatch = [];
+		matches[dataset].forEach(function(match) {
+			if (match.dice > 0.5) {
+				writeBatch.push(matchingReference.id + ', ' + match.id + ', ' + match.dice + ', ' + match.jaroWinkler + ', ' + match.tfidf);
+			}
+		});
+		FileWriter.writeBatch('facebookSim.csv', writeBatch);
+	}
+
+	
+
 	processedRefPoints.push(matchingReference.id);
 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
 }

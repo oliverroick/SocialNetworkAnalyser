@@ -25,7 +25,6 @@ var DbConnector = (function () {
 	 * Returns the next Reference Point 
 	 */
 	obj.prototype.getNextReferencePoint = function (excludes, callback) {
-		console.log();
 		this.client.query(
 			'SELECT foursq_venues.id, foursq_venues.name, foursq_venues.address AS street, ST_AsGeoJSON(the_geom) AS geom, foursq_categories.name AS category FROM foursq_venues LEFT JOIN foursq_venues_categories ON (foursq_venues.id = foursq_venues_categories.venue_id) LEFT JOIN foursq_categories ON (foursq_venues_categories.category_id = foursq_categories.id) ' + ((excludes.length > 0) ? 'WHERE foursq_venues.name IS NOT NULL AND foursq_venues.id NOT IN (\'' + excludes.join('\', \'') + '\') ' : '') + 'LIMIT 1;',
 			// 'SELECT id, name, address AS street, category, ST_AsGeoJSON(the_geom) AS geom FROM foursq_venues ' + ((excludes.length > 0) ? 'WHERE name IS NOT NULL AND id NOT IN (\'' + excludes.join('\', \'') + '\') ' : '') + 'LIMIT 1',
@@ -46,7 +45,8 @@ var DbConnector = (function () {
 	 		osm: [],
 	 		facebook: []
 	 	};
-	 	var pending = 2;
+	 	var pending = 1;
+
 	 	// TODO: Try to to put result handling into dedicated function
 	 	this.client.query(
 	 		'SELECT id, name, street, category, ST_AsGeoJSON(the_geom) AS geom FROM facebook WHERE ST_Intersects(the_geom, ST_Buffer(ST_Geomfromtext(\'' + geometryWkt + '\', 4326), 0.01))',
@@ -58,15 +58,15 @@ var DbConnector = (function () {
 	 		}
 	 	);
 
-	 	this.client.query(
-	 		'SELECT osm_id as id, name, ST_AsGeoJSON(ST_Transform(way, 4326)) AS geom FROM planet_osm_point WHERE amenity IS NOT NULL AND name IS NOT null AND ST_Intersects(ST_Transform(way, 4326), ST_Buffer(ST_Geomfromtext(\'' + geometryWkt + '\', 4326), 0.01))',
-	 		function (error, result) {
-	 			if (error) throw new Error('Error while reading osm pois from database: \n' + JSON.stringify(error));
-	 			else matchingCandidates.osm = result.rows;
-	 			pending--;
-	 			if (pending === 0) callback(matchingReference, matchingCandidates);
-	 		}
-	 	);
+	 	// this.client.query(
+	 	// 	'SELECT osm_id as id, name, "addr:street" AS street, ST_AsGeoJSON(ST_Transform(way, 4326)) AS geom FROM planet_osm_point WHERE amenity IS NOT NULL AND name IS NOT null AND ST_Intersects(ST_Transform(way, 4326), ST_Buffer(ST_Geomfromtext(\'' + geometryWkt + '\', 4326), 0.01))',
+	 	// 	function (error, result) {
+	 	// 		if (error) throw new Error('Error while reading osm pois from database: \n' + JSON.stringify(error));
+	 	// 		else matchingCandidates.osm = result.rows;
+	 	// 		pending--;
+	 	// 		if (pending === 0) callback(matchingReference, matchingCandidates);
+	 	// 	}
+	 	// );
 	 }
 
 	return obj;
