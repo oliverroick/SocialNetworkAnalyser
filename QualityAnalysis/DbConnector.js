@@ -37,6 +37,24 @@ var DbConnector = (function () {
 		);
 	}
 
+	/**
+	 * returns all venues
+	 */	
+
+	db.prototype.getFacebookVenues = function(callback) {
+		this.client.query(
+			'SELECT id, name, street, city, postal_code, country, checkins, likes FROM ONLY facebook WHERE sample = TRUE',
+			function (error, result) {
+				if (error)
+					throw new Error('Error while getting facebook Venues from database \n' + error);
+				else 
+					callback(result.rows);
+			}
+		);
+	}
+
+	return db;
+
 	return db;
 })();
 

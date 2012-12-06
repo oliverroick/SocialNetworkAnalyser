@@ -90,7 +90,8 @@ function getPassword(callback) {
  * Initialize process
  */
  function initializeProcess() {
- 	database.getFourSquareVenues(handleFoursquareVenues);
+ 	// database.getFourSquareVenues(handleFoursquareVenues);
+ 	database.getFacebookVenues(handleFacebookVenues)
  }
 
 
@@ -124,4 +125,23 @@ function handleFoursquareVenues(venues) {
 		}
 	});
 	FileWriter.writeBatch('foursquare.csv', lines);
+}
+
+function handleFacebookVenues(venues) {
+	var lines = ['ID, COMPLETENESS, LIKES, CHECKINS'];
+	venues.forEach(function(venue) {
+		var completeness = 0;
+		if (venue.name !== null) completeness += 0.2;
+		if (venue.street !== null) completeness += 0.2;
+		if (venue.city !== null) completeness += 0.2;
+		if (venue.postal_code !== null) completeness += 0.2;
+		if (venue.country !== null) completeness += 0.2;
+		lines.push(venue.id + ', ' + completeness + ', ' + venue.likes + ', ' + venue.checkins);
+		
+		if (lines.length === 1000) {
+			FileWriter.writeBatch('facebook.csv', lines);	
+			lines = [];
+		}
+	});
+	FileWriter.writeBatch('facebook.csv', lines);
 }
