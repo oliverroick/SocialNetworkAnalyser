@@ -4,7 +4,6 @@
 
 // load dependencies
 var DbConnection = require('./DbConnector.js');
-var Matcher = require('./Matcher.js');
 var FileWriter = require('./FileWriter.js');
 
 // config
@@ -91,7 +90,7 @@ function getPassword(callback) {
  * Initialize process
  */
  function initializeProcess() {
- 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
+ 	database.getFourSquareVenues(handleFoursquareVenues);
  }
 
 
@@ -108,24 +107,21 @@ function handlePasswordInput(password) {
  	initializeProcess();
 }
 
-function handleNextRefPoint(matchingReference) {
-	database.getMatchingCandidates(matchingReference, handleMatchingCandidates);
-}
-
-function handleMatchingCandidates(matchingReference, matchingCandidates) {
-	var matches = Matcher.match(matchingReference, matchingCandidates);
-	
-
-	for (var dataset in matches) {
-		var writeBatch = [];
-		matches[dataset].forEach(function(match) {
-				writeBatch.push(matchingReference.id + ', ' + match.id + ', ' + match.dice + ', ' + match.jaroWinkler + ', ' + match.tfidf);
-		});
-		FileWriter.writeBatch('facebookSim.csv', writeBatch);
-	}
-
-	
-
-	processedRefPoints.push(matchingReference.id);
-	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
+function handleFoursquareVenues(venues) {
+	var lines = ['ID, COMPLETENESS, USERS, CHECKINS'];
+	venues.forEach(function(venue) {
+		var completeness = 0;
+		if (venue.name !== null) completeness += 0.2;
+		if (venue.street !== null) completeness += 0.2;
+		if (venue.city !== null) completeness += 0.2;
+		if (venue.postal_code !== null) completeness += 0.2;
+		if (venue.country !== null) completeness += 0.2;
+		lines.push(venue.id + ', ' + completeness + ', ' + venue.users + ', ' + venue.checkins);
+		
+		if (lines.length === 1000) {
+			FileWriter.writeBatch('foursquare.csv', lines);	
+			lines = [];
+		}
+	});
+	FileWriter.writeBatch('foursquare.csv', lines);
 }
