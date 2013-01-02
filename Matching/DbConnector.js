@@ -26,7 +26,7 @@ var DbConnector = (function () {
 	 */
 	obj.prototype.getNextReferencePoint = function (excludes, callback) {
 		this.client.query(
-			'SELECT foursq_venues.id, foursq_venues.name, foursq_venues.address AS street, ST_AsGeoJSON(the_geom) AS geom, foursq_categories.name AS category FROM foursq_venues LEFT JOIN foursq_venues_categories ON (foursq_venues.id = foursq_venues_categories.venue_id) LEFT JOIN foursq_categories ON (foursq_venues_categories.category_id = foursq_categories.id) ' + ((excludes.length > 0) ? 'WHERE foursq_venues.name IS NOT NULL AND foursq_venues.id NOT IN (\'' + excludes.join('\', \'') + '\') ' : '') + 'LIMIT 1;',
+			'SELECT foursq_venues.id, foursq_venues.name, foursq_venues.address AS street, foursq_venues.city, foursq_venues.state, foursq_venues.country, ST_AsGeoJSON(the_geom) AS geom, foursq_categories.name AS category FROM foursq_venues LEFT JOIN foursq_venues_categories ON (foursq_venues.id = foursq_venues_categories.venue_id) LEFT JOIN foursq_categories ON (foursq_venues_categories.category_id = foursq_categories.id) ' + ((excludes.length > 0) ? 'WHERE foursq_venues.name IS NOT NULL AND foursq_venues.id NOT IN (\'' + excludes.join('\', \'') + '\') ' : '') + 'LIMIT 1;',
 			// 'SELECT id, name, address AS street, category, ST_AsGeoJSON(the_geom) AS geom FROM foursq_venues ' + ((excludes.length > 0) ? 'WHERE name IS NOT NULL AND id NOT IN (\'' + excludes.join('\', \'') + '\') ' : '') + 'LIMIT 1',
 			function (error, result) {
 				if (error) throw new Error('Reading next reference point from foursquare venue table failed: \n' + JSON.stringify(error))
@@ -49,7 +49,7 @@ var DbConnector = (function () {
 
 	 	// TODO: Try to to put result handling into dedicated function
 	 	this.client.query(
-	 		'SELECT id, name, street, category, ST_AsGeoJSON(the_geom) AS geom FROM facebook WHERE ST_Intersects(the_geom, ST_Buffer(ST_Geomfromtext(\'' + geometryWkt + '\', 4326), 0.01))',
+	 		'SELECT id, name, street, city, state, country, category, ST_AsGeoJSON(the_geom) AS geom FROM facebook WHERE ST_Intersects(the_geom, ST_Buffer(ST_Geomfromtext(\'' + geometryWkt + '\', 4326), 0.01))',
 	 		function (error, result) {
 	 			if (error) throw new Error('Error while reading facebook venues from database: \n' + JSON.stringify(error));
 	 			else matchingCandidates.facebook = result.rows;

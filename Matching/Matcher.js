@@ -34,7 +34,7 @@ var Matcher = (function () {
 	/*
 	 * 
 	 */
-	 var getMaxTfidf = function(reference, candidates) {
+	var getMaxTfidf = function(reference, candidates) {
 	 	var tfidf = new natural.TfIdf();
 
 	 	candidates.forEach(function(candidate) {
@@ -51,7 +51,18 @@ var Matcher = (function () {
 		candidates[maxIndex].tfidf = maxVal;
 
 		return candidates[maxIndex];
-	 }
+	}
+
+	/*
+	 *
+	 *
+	 */
+	var replacePlaceName = function(name, placeNames) {
+		return name
+			.toLowerCase()
+			.replace(placeNames, '')
+			.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); // Removes preceeding and tailing white spaces
+	}
 
 	/*
 	 * Returns the most likely matches for the reference
@@ -63,24 +74,34 @@ var Matcher = (function () {
 	matcher.prototype.match = function (reference, candidates, d) {
 		if (d) diceThreshold = d;
 		
-		console.log(reference.name + ' --------------------------------');
+		// console.log(reference.name + ' --------------------------------');
 		for (var dataset in candidates) {
-			var tfidf = new natural.TfIdf();
+			// var tfidf = new natural.TfIdf();
 
+			candidates[dataset].forEach(function(candidate) {
+				// console.log(reference.city);
+				var placeNames = new RegExp('(' + ((reference.city != null) ? reference.city.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
+					+ ((reference.state != null) ? reference.state.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
+					+ ((reference.country != null) ? reference.country.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
+					+ ((candidate.city != null) ? candidate.city.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
+					+ ((candidate.state != null) ? candidate.state.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
+					+ ((candidate.country != null) ? candidate.country.toLowerCase().replace(/(\(|\))/g, '') : '') + ')','g');
 
-			candidates[dataset].forEach(function(poi) {
-				tfidf.addDocument(getFourGrams(poi.name));
-				poi.dice = natural.DiceCoefficient(reference.name, poi.name);
-				poi.jaroWinkler = natural.JaroWinklerDistance(reference.name, poi.name);
+				var referenceName = replacePlaceName(reference.name, placeNames);
+				var candidateName = replacePlaceName(candidate.name, placeNames);
+
+				// tfidf.addDocument(getFourGrams(poi.name));
+				if (referenceName.length > 0 && candidateName.length > 0) {
+					candidate.dice = natural.DiceCoefficient(referenceName, candidateName);
+					candidate.jaroWinkler = natural.JaroWinklerDistance(referenceName, candidateName);	
+				}
 			});
 
-			var referenceFourGrams = getFourGrams(reference.name);
+			// var referenceFourGrams = getFourGrams(reference.name);
 
-			tfidf.tfidfs(referenceFourGrams, function(i, measure) {
-				candidates[dataset][i].tfidf = measure;	
-			});
-			
-			
+			// tfidf.tfidfs(referenceFourGrams, function(i, measure) {
+			// 	candidates[dataset][i].tfidf = measure;	
+			// });
 		}
 		return candidates;
 	}

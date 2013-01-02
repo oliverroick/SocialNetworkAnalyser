@@ -114,15 +114,21 @@ function handleNextRefPoint(matchingReference) {
 
 function handleMatchingCandidates(matchingReference, matchingCandidates) {
 	var matches = Matcher.match(matchingReference, matchingCandidates);
-	
-
 	for (var dataset in matches) {
-		var writeBatch = [];
-		matches[dataset].forEach(function(match) {
-				writeBatch.push(matchingReference.id + ', ' + match.id + ', ' + match.dice + ', ' + match.jaroWinkler + ', ' + match.tfidf);
+		matches[dataset].forEach(function(result) {
+			if (result.dice > 0.5) {
+				console.log(matchingReference.name + '--' + result.name + ': ' + result.dice + ', ' + result.jaroWinkler)
+			}
 		});
-		FileWriter.writeBatch('facebookSim.csv', writeBatch);
 	}
+
+	// for (var dataset in matches) {
+	// 	var writeBatch = [];
+	// 	matches[dataset].forEach(function(match) {
+	// 			writeBatch.push(matchingReference.id + ', ' + match.id + ', ' + match.dice + ', ' + match.jaroWinkler + ', ' + match.tfidf);
+	// 	});
+	// 	FileWriter.writeBatch('facebookSim.csv', writeBatch);
+	// }
 
 	
 
