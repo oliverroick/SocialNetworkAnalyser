@@ -122,16 +122,6 @@ function handleMatchingCandidates(matchingReference, matchingCandidates) {
 		});
 	}
 
-	// for (var dataset in matches) {
-	// 	var writeBatch = [];
-	// 	matches[dataset].forEach(function(match) {
-	// 			writeBatch.push(matchingReference.id + ', ' + match.id + ', ' + match.dice + ', ' + match.jaroWinkler + ', ' + match.tfidf);
-	// 	});
-	// 	FileWriter.writeBatch('facebookSim.csv', writeBatch);
-	// }
-
-	
-
 	processedRefPoints.push(matchingReference.id);
 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
 }
