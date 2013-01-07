@@ -117,7 +117,7 @@ function handleMatchingCandidates(matchingReference, matchingCandidates) {
 	for (var dataset in matches) {
 		matches[dataset].forEach(function(result) {
 			if (result.dice > 0.5) {
-				console.log(matchingReference.name + '--' + result.name + ': ' + result.dice + ', ' + result.jaroWinkler)
+				console.log(matchingReference.name + '--' + result.name + ': ' + result.dice + ', ' + result.jaroWinkler + ', ' + result.wuPalmer)
 			}
 		});
 	}
