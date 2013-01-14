@@ -53,11 +53,13 @@ var Matcher = (function () {
 	 * @param {Object} Arrays of matching candidates
 	 * @param {number} Costum threshold value for dice coefficient
 	 */
-	matcher.prototype.match = function (reference, candidates, d, callback) {
+	matcher.prototype.match = function (reference, candidates, callback, d) {
 		if (d) diceThreshold = d;
-		
+		var pending = 0;
 		// console.log(reference.name + ' --------------------------------');
 		for (var dataset in candidates) {
+			pending += candidates[dataset].length;
+
 			candidates[dataset].forEach(function(candidate) {
 				var placeNames = new RegExp('(' + ((reference.city != null) ? reference.city.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
 					+ ((reference.state != null) ? reference.state.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
@@ -78,17 +80,23 @@ var Matcher = (function () {
 					var referenceCategory = prepareCategory(reference.category);
 					var candidateCategory = prepareCategory(candidate.category);
 
-					var pending = referenceCategory.length * candidateCategory.length;
+					// natural.WuPalmer(referenceCategory[0], candidateCategory[0], function(sim) {
+					// 	candidate.wuPalmer = sim;
 
-					referenceCategory.forEach(function(refCat) {
-						candidateCategory.forEach(function(candCat) {
-							natural.WuPalmer(refCat, candCat, function(sim) {
-								pending--;
-								if (!candidate.wuPalmer || candidate.wuPalmer < sim) candidate.wuPalmer = sim;
-								// if (pending === 0) callback();
-							});
-						});
-					});
+					// 	pending--;
+					// 	if (pending === 0) callback(candidates);
+					// });
+
+					// // var pending = referenceCategory.length * candidateCategory.length;
+					// referenceCategory.forEach(function(refCat) {
+					// 	candidateCategory.forEach(function(candCat) {
+					// 		natural.WuPalmer(refCat, candCat, function(sim) {
+					// 			pending--;
+					// 			if (!candidate.wuPalmer || candidate.wuPalmer < sim) candidate.wuPalmer = sim;
+					// 			// if (pending === 0) callback();
+					// 		});
+					// 	});
+					// });
 				}
 			});
 		}

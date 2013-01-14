@@ -112,16 +112,33 @@ function handleNextRefPoint(matchingReference) {
 	database.getMatchingCandidates(matchingReference, handleMatchingCandidates);
 }
 
+var matchCount = 0;
 function handleMatchingCandidates(matchingReference, matchingCandidates) {
 	var matches = Matcher.match(matchingReference, matchingCandidates);
+	var bestMatch;
 	for (var dataset in matches) {
-		matches[dataset].forEach(function(result) {
-			if (result.dice > 0.5) {
-				console.log(matchingReference.name + '--' + result.name + ': ' + result.dice + ', ' + result.jaroWinkler + ', ' + result.wuPalmer)
-			}
-		});
+		if (matches[dataset].length > 0) {
+			matches[dataset].forEach(function(result) {
+				if (!bestMatch || bestMatch.jaroWinkler < result.jaroWinkler) bestMatch = result;
+			});
+		}
+	}
+	if (bestMatch && bestMatch.jaroWinkler >= 0.85) {
+		matchCount++
+		console.log('#' + matchCount + '    ' + matchingReference.name + '--' + bestMatch.name + ': ' + bestMatch.jaroWinkler);	
+		FileWriter.writeBatch('matches.csv', [matchingReference.id + ',' + bestMatch.id]);
 	}
 
 	processedRefPoints.push(matchingReference.id);
 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
 }
+
+function handleMatchingResults(matches) {
+	for (var dataset in matches) {
+		matches[dataset].forEach(function(result) {
+			if (result.dice > 0.5) {
+				console.log(matchingReference.name + '--' + result.name + ': ' + result.dice + ', ' + result.jaroWinkler + ', ' + result.wuPalmer);
+			}
+		});
+	}
+} 

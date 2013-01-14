@@ -37,7 +37,7 @@ var DbConnector = (function () {
 
 	/**
 	 * Returns {Array} of matching candidates in Facebook and OSM tables
-	 */
+	 */	
 
 	 obj.prototype.getMatchingCandidates = function(matchingReference, callback) {
 	 	var geometryWkt = GEOJSON2WKT.convert(matchingReference.geom);
