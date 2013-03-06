@@ -53,7 +53,19 @@ var DbConnector = (function () {
 		);
 	}
 
-	return db;
+	db.prototype.getDistance = function(foursquareId, facebookId, callback) {
+		this.client.query(
+			'SELECT Distance(ST_Transform(GeometryFromText ( (SELECT ST_AsText(the_geom) FROM ONLY facebook WHERE id = \'' + facebookId + '\'), 4326 ), 900913), ST_Transform(GeometryFromText ( (SELECT ST_AsText(the_geom) FROM ONLY foursq_venues WHERE id = \'' + foursquareId + '\'), 4326 ), 900913))',
+			function (error, result) {
+				if (error) {
+					console.log('SELECT Distance(ST_Transform(GeometryFromText ( (SELECT ST_AsText(the_geom) FROM facebook WHERE id = \'' + facebookId + '\'), 4326 ), 900913), ST_Transform(GeometryFromText ( (SELECT ST_AsText(the_geom) FROM foursq_venues WHERE id = \'' + foursquareId + '\'), 4326 ), 900913))');
+					throw new Error('Error while getting distance from database \n' + error);
+				}
+				else 
+					callback(foursquareId, facebookId, result.rows[0].distance);
+			}
+		);
+	}
 
 	return db;
 })();

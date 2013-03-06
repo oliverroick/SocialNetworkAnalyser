@@ -35,7 +35,7 @@ var Matcher = (function () {
 	 */
 	var prepareCategory = function(category) {
 		var categoriesResults = [];
-		var categories = category.split('/');
+		var categories = category.substring(0, (category.indexOf('(') !== -1 ? category.indexOf('(') : category.length)).split('/');
 		categories.forEach(function(cat) {
 			categoriesResults.push(
 				cat.toLowerCase()
@@ -46,6 +46,8 @@ var Matcher = (function () {
 		return categoriesResults;
 	}
 
+
+
 	/*
 	 * Returns the most likely matches for the reference
 	 *
@@ -54,13 +56,12 @@ var Matcher = (function () {
 	 * @param {number} Costum threshold value for dice coefficient
 	 */
 	matcher.prototype.match = function (reference, candidates, callback, d) {
+		var matchTuples = [];
 		if (d) diceThreshold = d;
-		var pending = 0;
-		// console.log(reference.name + ' --------------------------------');
-		for (var dataset in candidates) {
-			pending += candidates[dataset].length;
 
+		for (var dataset in candidates) {
 			candidates[dataset].forEach(function(candidate) {
+				var dice, jaroWinkler;
 				var placeNames = new RegExp('(' + ((reference.city != null) ? reference.city.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
 					+ ((reference.state != null) ? reference.state.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
 					+ ((reference.country != null) ? reference.country.toLowerCase().replace(/(\(|\))/g, '') + '|' : '') 
@@ -72,35 +73,43 @@ var Matcher = (function () {
 				var candidateName = replacePlaceName(candidate.name, placeNames);
 
 				if (referenceName.length > 0 && candidateName.length > 0) {
-					candidate.dice = natural.DiceCoefficient(referenceName, candidateName);
-					candidate.jaroWinkler = natural.JaroWinklerDistance(referenceName, candidateName);	
+					dice = natural.DiceCoefficient(referenceName, candidateName);
+					jaroWinkler = natural.JaroWinklerDistance(referenceName, candidateName);
 				}
 
 				if (reference.category != null && candidate.category != null) {
 					var referenceCategory = prepareCategory(reference.category);
 					var candidateCategory = prepareCategory(candidate.category);
+					console.log(reference.category + ' --> ' + referenceCategory);
+					console.log(candidate.category + ' --> ' + candidateCategory);
 
-					// natural.WuPalmer(referenceCategory[0], candidateCategory[0], function(sim) {
-					// 	candidate.wuPalmer = sim;
-
-					// 	pending--;
-					// 	if (pending === 0) callback(candidates);
-					// });
-
-					// // var pending = referenceCategory.length * candidateCategory.length;
-					// referenceCategory.forEach(function(refCat) {
-					// 	candidateCategory.forEach(function(candCat) {
-					// 		natural.WuPalmer(refCat, candCat, function(sim) {
-					// 			pending--;
-					// 			if (!candidate.wuPalmer || candidate.wuPalmer < sim) candidate.wuPalmer = sim;
-					// 			// if (pending === 0) callback();
-					// 		});
-					// 	});
-					// });
+					
+					referenceCategory.forEach(function(refCat) {
+						candidateCategory.forEach(function(candCat) {
+							matchTuples.push({
+								'reference': reference.id,
+								'candidate': candidate.id,
+								'dice': dice,
+								'jaroWinkler': jaroWinkler,
+								'referenceCategory': refCat,
+								'candidateCategory': candCat
+							});
+						});
+					});
 				}
 			});
 		}
-		return candidates;
+		getNextMatch(matchTuples, 0, callback);
+	}
+
+	var getNextMatch = function (matchTuples, inc, callback) {
+		natural.WuPalmer(matchTuples[inc].referenceCategory, matchTuples[inc].candidateCategory, function(sim) {
+			matchTuples[inc].wuPalmer = sim;
+			
+			newInc = inc + 1;
+			if (newInc < matchTuples.length) getNextMatch(matchTuples, newInc, callback);
+			else callback(matchTuples);
+		});
 	}
 
 	/**

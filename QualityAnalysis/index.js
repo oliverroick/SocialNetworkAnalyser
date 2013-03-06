@@ -5,6 +5,8 @@
 // load dependencies
 var DbConnection = require('./DbConnector.js');
 var FileWriter = require('./FileWriter.js');
+var FS = require('fs');
+
 
 // config
 var processedRefPoints = [];
@@ -62,28 +64,35 @@ function getPassword(callback) {
 	process.stdin.setRawMode(true);
 	password = ''
 	process.stdin.on('data', function (char) {
-    char = char + ""
+	    char = char + ""
 
-    switch (char) {
-    	case "\n": case "\r": case "\u0004":
-			// They've finished typing their password
-			process.stdin.setRawMode(false);
-			console.log('\n\n');
-			stdin.pause();
-			callback(password);
-			break;
-    	case "\u0003":
-    		// Ctrl C
-			console.log('Cancelled');
-			process.exit();
-			break;
-		default:
-			// More passsword characters
-			process.stdout.write('');
-			password += char;
-			break;
-    }
-  });
+	    switch (char) {
+	    	case "\n": case "\r": case "\u0004":
+				// They've finished typing their password
+				process.stdin.setRawMode(false);
+				console.log('\n\n');
+				stdin.pause();
+				callback(password);
+				break;
+	    	case "\u0003":
+	    		// Ctrl C
+				console.log('Cancelled');
+				process.exit();
+				break;
+			default:
+				// More passsword characters
+				process.stdout.write('');
+				password += char;
+				break;
+	    }
+	});
+}
+
+function readMatchFile() {
+	FS.readFileSync('matches.csv').toString().split('\n').forEach(function (line) {
+		var ids = line.split(',');
+		database.getDistance(ids[0], ids[1], handleDistance);
+	});
 }
 
 /**
@@ -91,7 +100,9 @@ function getPassword(callback) {
  */
  function initializeProcess() {
  	// database.getFourSquareVenues(handleFoursquareVenues);
- 	database.getFacebookVenues(handleFacebookVenues)
+ 	// database.getFacebookVenues(handleFacebookVenues);
+
+ 	readMatchFile();
  }
 
 
@@ -102,6 +113,13 @@ function getPassword(callback) {
 /*
  *
  */
+function handleDistance(foursquareId, facebookId, distance) {
+	console.log(foursquareId + ',' + facebookId + ',' + distance);
+	FileWriter.writeBatch('distances.csv', [foursquareId + ',' + facebookId + ',' + distance]);
+
+
+}
+
 function handlePasswordInput(password) {
  	dbConfig.pass = password;
  	database = new DbConnection(dbConfig);
