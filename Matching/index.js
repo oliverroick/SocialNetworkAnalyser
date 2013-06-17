@@ -117,11 +117,16 @@ function handleMatchingCandidates(matchingReference, matchingCandidates) {
 	Matcher.match(matchingReference, matchingCandidates, handleMatchingResults);
 }
 
-function handleMatchingResults(matchTuples) {
-	console.log(matchTuples)
-	matchTuples.forEach(function(tuple) {
-		console.log(tuple.referenceCategory + ' -- ' + tuple.candidateCategory + ': ' + tuple.wuPalmer);
-	});
-	processedRefPoints.push(matchTuples[0].reference);
+function handleMatchingResults(match) {
+	// matchTuples.forEach(function(tuple) {
+	// 	if (tuple.jaroWinkler > 0.9) {console.log(tuple.refName + ', ' + tuple.candName + ' :: ' + tuple.jaroWinkler); }
+	// });
+	// 
+	// 
+	if (match.jaroWinkler > 0.9) {
+		FileWriter.writeBatch('matches.csv', [match.reference + ',' + match.candidate]);
+	}
+	
+	processedRefPoints.push(match.reference);
 	database.getNextReferencePoint(processedRefPoints, handleNextRefPoint);
 }

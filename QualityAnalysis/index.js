@@ -116,8 +116,6 @@ function readMatchFile() {
 function handleDistance(foursquareId, facebookId, distance) {
 	console.log(foursquareId + ',' + facebookId + ',' + distance);
 	FileWriter.writeBatch('distances.csv', [foursquareId + ',' + facebookId + ',' + distance]);
-
-
 }
 
 function handlePasswordInput(password) {

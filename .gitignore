@@ -23,6 +23,7 @@
 # Logs and databases #
 ######################
 *.log
+*.csv
 
 # OS generated files #
 ######################
@@ -36,3 +37,8 @@ ehthumbs.db
 Thumbs.db
 
 /modules/*
+
+# Sublime Stuff #
+#####################
+*.sublime-project
+*.sublime-workspace

@@ -56,7 +56,7 @@ var Matcher = (function () {
 	 * @param {number} Costum threshold value for dice coefficient
 	 */
 	matcher.prototype.match = function (reference, candidates, callback, d) {
-		var matchTuples = [];
+		var matchTuples = [], bestMatch;
 		if (d) diceThreshold = d;
 
 		for (var dataset in candidates) {
@@ -77,29 +77,49 @@ var Matcher = (function () {
 					jaroWinkler = natural.JaroWinklerDistance(referenceName, candidateName);
 				}
 
-				if (reference.category != null && candidate.category != null) {
-					var referenceCategory = prepareCategory(reference.category);
-					var candidateCategory = prepareCategory(candidate.category);
-					console.log(reference.category + ' --> ' + referenceCategory);
-					console.log(candidate.category + ' --> ' + candidateCategory);
+				matchTuples.push({
+					'reference': reference.id,
+					'candidate': candidate.id,
+					'refName': reference.name,
+					'candName': candidate.name,
+					'dice': dice,
+					'jaroWinkler': jaroWinkler
+				});
+				
+				// if (reference.category != null && candidate.category != null) {
+				// 	var referenceCategory = prepareCategory(reference.category);
+				// 	var candidateCategory = prepareCategory(candidate.category);
+				// 	console.log(reference.category + ' --> ' + referenceCategory);
+				// 	console.log(candidate.category + ' --> ' + candidateCategory);
 
-					
-					referenceCategory.forEach(function(refCat) {
-						candidateCategory.forEach(function(candCat) {
-							matchTuples.push({
-								'reference': reference.id,
-								'candidate': candidate.id,
-								'dice': dice,
-								'jaroWinkler': jaroWinkler,
-								'referenceCategory': refCat,
-								'candidateCategory': candCat
-							});
-						});
-					});
-				}
+				// 	referenceCategory.forEach(function(refCat) {
+				// 		candidateCategory.forEach(function(candCat) {
+				// 			matchTuples.push({
+				// 				'reference': reference.id,
+				// 				'candidate': candidate.id,
+				// 				'dice': dice,
+				// 				'jaroWinkler': jaroWinkler,
+				// 				'referenceCategory': refCat,
+				// 				'candidateCategory': candCat
+				// 			});
+				// 		});
+				// 	});
+				// }
 			});
 		}
-		getNextMatch(matchTuples, 0, callback);
+
+		
+
+		if (matchTuples.length === 0) {
+			bestMatch = {'reference': reference.id}
+		} else {
+			matchTuples.forEach(function(tuple) {
+				if (!bestMatch || (tuple.jaroWinkler > bestMatch.jaroWinkler)) {bestMatch = tuple; }
+			});	
+		}
+
+		callback(bestMatch);
+		// getNextMatch(matchTuples, 0, callback);
 	}
 
 	var getNextMatch = function (matchTuples, inc, callback) {
